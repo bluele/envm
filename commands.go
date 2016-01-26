@@ -290,3 +290,62 @@ func (cm *UpdateCommand) Run(args []string) int {
 func (cm *UpdateCommand) Synopsis() string {
 	return "$ envm update <name>"
 }
+
+type CheckCommand struct {
+	baseCommand
+}
+
+func (cm *CheckCommand) Help() string {
+	return "check command"
+}
+
+func (cm *CheckCommand) Run(args []string) int {
+	if len(args) < 1 {
+		fmt.Println(cm.Synopsis())
+		return 1
+	}
+	configPath, err := getConfPath()
+	if err != nil {
+		printError(err)
+		return 1
+	}
+	cfg := NewConfig(configPath)
+	path, ok := cfg.getConfPath()
+	if !ok {
+		return 0
+	}
+	data, err := cfg.load(path)
+	if err != nil {
+		printError(err)
+		return 1
+	}
+
+	for _, name := range args {
+		vs, ok := data[name]
+		if ok {
+			fmt.Printf("=== Check %v\n", name)
+		} else {
+			fmt.Printf("=== Not found %v\nFAIL %v", name, name)
+			continue
+		}
+		passed := true
+		for k, v := range vs {
+			if os.Getenv(k) == v {
+				fmt.Printf("✔ %v\n", k)
+			} else {
+				fmt.Printf("✗ %v\n", k)
+				passed = false
+			}
+		}
+		if passed {
+			fmt.Printf("ok   %v\n\n", name)
+		} else {
+			fmt.Printf("FAIL %v\n\n", name)
+		}
+	}
+	return 0
+}
+
+func (cm *CheckCommand) Synopsis() string {
+	return "$ envm check [<name>…​]"
+}

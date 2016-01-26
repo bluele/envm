@@ -213,6 +213,9 @@ func main() {
 		"update": func() (cli.Command, error) {
 			return &UpdateCommand{}, nil
 		},
+		"check": func() (cli.Command, error) {
+			return &CheckCommand{}, nil
+		},
 	}
 
 	status, err := c.Run()
